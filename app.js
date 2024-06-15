@@ -1,18 +1,18 @@
-unction getBathValue() {
-  var uiBathrooms = document.getElementsByName("uiBathrooms");
-  for(var i in uiBathrooms) {
-    if(uiBathrooms[i].checked) {
-        return parseInt(i)+1;
+function getBathValue() {
+  const uiBathrooms = document.getElementsByName("uiBathrooms");
+  for (let i = 0; i < uiBathrooms.length; i++) {
+    if (uiBathrooms[i].checked) {
+      return parseInt(uiBathrooms[i].value);
     }
   }
   return -1; // Invalid Value
 }
 
 function getBHKValue() {
-  var uiBHK = document.getElementsByName("uiBHK");
-  for(var i in uiBHK) {
-    if(uiBHK[i].checked) {
-        return parseInt(i)+1;
+  const uiBHK = document.getElementsByName("uiBHK");
+  for (let i = 0; i < uiBHK.length; i++) {
+    if (uiBHK[i].checked) {
+      return parseInt(uiBHK[i].value);
     }
   }
   return -1; // Invalid Value
@@ -20,42 +20,54 @@ function getBHKValue() {
 
 function onClickedEstimatePrice() {
   console.log("Estimate price button clicked");
-  var sqft = document.getElementById("uiSqft");
-  var bhk = getBHKValue();
-  var bathrooms = getBathValue();
-  var location = document.getElementById("uiLocations");
-  var estPrice = document.getElementById("uiEstimatedPrice");
+  const sqft = document.getElementById("uiSqft");
+  const bhk = getBHKValue();
+  const bathrooms = getBathValue();
+  const location = document.getElementById("uiLocations");
+  const estPrice = document.getElementById("uiEstimatedPrice");
 
-  var url = "http://127.0.0.1:5000/predict_home_price"; //Use this if you are NOT using nginx which is first 7 tutorials
-  //var url = "/api/predict_home_price"; // Use this if  you are using nginx. i.e tutorial 8 and onwards
+  const url = "http://127.0.0.1:5000/predict_home_price"; // Use this if you are NOT using nginx
 
   $.post(url, {
-      total_sqft: parseFloat(sqft.value),
-      bhk: bhk,
-      bath: bathrooms,
-      location: location.value
-  },function(data, status) {
+    total_sqft: parseFloat(sqft.value),
+    bhk: bhk,
+    bath: bathrooms,
+    location: location.value
+  }, function (data, status) {
+    if (status === 'success') {
       console.log(data.estimated_price);
       estPrice.innerHTML = "<h2>" + data.estimated_price.toString() + " Lakh</h2>";
-      console.log(status);
+    } else {
+      console.error("Error:", status);
+      estPrice.innerHTML = "<h2>Error estimating price</h2>";
+    }
+  }).fail(function (xhr, status, error) {
+    console.error("Error:", status, error);
+    estPrice.innerHTML = "<h2>Error estimating price</h2>";
   });
 }
 
 function onPageLoad() {
-  console.log( "document loaded" );
-  var url = "http://127.0.0.1:5000/get_location_names"; // Use this if you are NOT using nginx which is first 7 tutorials
-  //var url = "/api/get_location_names"; // Use this if  you are using nginx. i.e tutorial 8 and onwards
-  $.get(url,function(data, status) {
+  console.log("document loaded");
+  const url = "http://127.0.0.1:5000/get_location_names"; // Use this if you are NOT using nginx
+
+  $.get(url, function (data, status) {
+    if (status === 'success') {
       console.log("got response for get_location_names request");
-      if(data) {
-          var locations = data.locations;
-          var uiLocations = document.getElementById("uiLocations");
-          $('#uiLocations').empty();
-          for(var i in locations) {
-              var opt = new Option(locations[i]);
-              $('#uiLocations').append(opt);
-          }
+      if (data) {
+        const locations = data.locations;
+        const uiLocations = document.getElementById("uiLocations");
+        $('#uiLocations').empty();
+        locations.forEach(function (location) {
+          const opt = new Option(location);
+          $('#uiLocations').append(opt);
+        });
       }
+    } else {
+      console.error("Error:", status);
+    }
+  }).fail(function (xhr, status, error) {
+    console.error("Error:", status, error);
   });
 }
 
